@@ -1,4 +1,4 @@
-dir = '/Users/admin/Desktop/m2/';
+dir = '/Users/admin/Desktop/m2project/';
 NewFolder = 'stimulipilot';
 mkdir(NewFolder);
 Ntrial = 1;
