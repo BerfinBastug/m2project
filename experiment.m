@@ -6,7 +6,8 @@ sca;
 % Call defaults
 PsychDefaultSetup(1); % Executes the AssertOpenGL command & KbName('UnifyKeyNames')
 
-% Screen('Preference', 'SkipSyncTests', 2); % DO NOT KEEP THIS IN EXPERIMENTAL SCRIPTS!
+Screen('Preference', 'SkipSyncTests', 2); % DO NOT KEEP THIS IN EXPERIMENTAL SCRIPTS!
+
 rand('seed', sum(100 * clock));
 
 % Setup screens
@@ -78,7 +79,7 @@ end
 %% Response Matrix
 % 1 = response
 % 2 = rt
-% 3  = correctResponse
+n_trials = length(sound_order);
 respMat = nan(n_trials,2); % tb edit: save response and correct response
 %% Setting Keyboard
 % OTHER DEFAULTS
