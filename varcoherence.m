@@ -3,7 +3,7 @@ NewFolder = 'stimulipilot';
 mkdir(NewFolder);
 Ntrial = 1;
 stimdir = strcat(dir,NewFolder);
-cohVals = 0:0.05:1;
+cohVals = 0:0.5:1;
 for a=1:Ntrial
     for i = 1:length(cohVals)
         [x, sP] = gencloudcoherence;
