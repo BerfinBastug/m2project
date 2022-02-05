@@ -48,15 +48,8 @@ try
     FRtrialinfo = ['FREE RESPONSE TRIAL\n' ...
                'Respond as soon as possible \n'];
     VSDtrialinfo =['VARIED STIMULUS DURATION TRIAL\n' ...
-               'Respond when the sound finishes \n'];     
-    %% RANDOMIZE TASKS
-    
-    task1 = "FR";
-    task2 = "VSD";
-
-    TASKS = repelem([task1, task2], [3 3]);
-    s_TASKS = Shuffle(TASKS);
-    
+               'Respond when the sound finishes \n']; 
+           
     %% RANDOMIZE FRstim
     % STEP1: LOCATE WHERE THE SOUNDS ARE
     FRstimDir = '/Users/admin/Desktop/m2project/FRstim';
@@ -108,6 +101,20 @@ try
             VSDrand_stim_order([k, k+1]) = VSDrand_stim_order([k+1, k]);
         end
     end
+    %% RANDOMIZE TASKS
+    
+    taskFR = "FR";
+    taskVSD = "VSD";
+
+    TASKS = repelem([taskFR, taskVSD], [3 3]);
+    s_TASKS = Shuffle(TASKS);
+    
+    %% NOTE DOWN THE USED STIMS
+    FRusedsounds = FRstim_list(FRrand_stim_order);
+    FRusedsounds= FRusedsounds(1:length(taskFR));
+    
+    VSDusedsounds = VSDstim_list(VSDrand_stim_order);
+    VSDusedsounds= VSDusedsounds(1:length(taskVSD));
     %% PRESENTATION OF TRIALS
     
     for i=1:length(s_TASKS)
@@ -115,43 +122,21 @@ try
         
         thiscond = s_TASKS(i);
         if thiscond == "FR"
-            
-            % STEP1: LOCATE WHERE THE SOUNDS ARE
-            FRsounds = '/Users/admin/Desktop/m2project/FRstim';
-            d=dir(FRsounds);
-            
-            % STEP2: DROP THE EMPTY ITEMS IN THE LIST
-            d=d(~ismember({d.name},{'.','..'}));
-            
-            % STEP3: RANDOMIZE THE SOUNDS
-            num_sounds = length(d);
-            sound_options = 1:num_sounds;
-            FRnum_repeats = 1;
-            FRnum_trials = num_sounds * FRnum_repeats;
-            sound_order = nan(1, FRnum_trials);
-            
-            for k = 1:num_sounds:FRnum_trials
-                subsequence = Shuffle(sound_options);
-                sound_order(k:k+(num_sounds-1)) = subsequence;
-                % swap the first value of this subsequence if it repeats the previous
-                if k > 1 && (sound_order(k) == sound_order(k-1))
-                    sound_order([k, k+1]) = sound_order([k+1, k]);
-                end
-            end
-            
-            for a=1:length(sound_order)
+            for a=1:length(FRrand_stim_order)
                 
-                % STEP4: CALL THE SOUND
+                % STEP1: CALL THE SOUND
                 DrawFormattedText(windowPtr, FRtrialinfo, 'center', 'center');
-                t_fr_trialinfo(a) = Screen('Flip', windowPtr); 
-                FRfilename= d(sound_order(a)).name;
-                [FRsoundFile,FRfreq] = psychwavread(FRfilename);
+                tFR(a) = Screen('Flip', windowPtr); 
+                
+                FRused(a) = FRstim_list(FRrand_stim_order(a));
+                whichFRstim = FRstim_list(FRrand_stim_order(a));
+                [y,freq] = psychwavread(whichFRstim);
 
                 % STEP5: LEARN ITS DURATION
-                stimDurFR(a) = length(FRsoundFile)./FRfreq;
+                stimDurFR(a) = length(y)./freq;
 
                 % STEP6: GET VALUES NECESSARY TO ENTER INTO THE PSYCHPORT FUNCTIONS
-                wave = FRsoundFile'; %be careful it is transposed
+                wave = y'; %be careful it is transposed
                 nrchannels = size(wave,1);
 
                 % STEP7: MAKE SURE IT HAS 2 CHANNELS
@@ -161,7 +146,7 @@ try
                 end
 
                 % STEP8: OPEN THE PSYCHPORT AUDIO
-                pahandle = PsychPortAudio('Open', [], [], 0, FRfreq, nrchannels);
+                pahandle = PsychPortAudio('Open', [], [], 0, freq, nrchannels);
 
                 % STEP9: FILL THE BUFFER
                 PsychPortAudio('FillBuffer',pahandle,wave);
@@ -199,45 +184,25 @@ try
 
                 % STEP13: CLOSE THE AUDIO DEVICE
                 PsychPortAudio('Close', pahandle);
+                FRstim_list(strcmp(FRstim_list, whichFRstim)) = [];
             end
             
         elseif thiscond == "VSD"
-            % STEP1: LOCATE WHERE THE SOUNDS ARE
-            VSDsounds = '/Users/admin/Desktop/m2project/VSDstim';
-            d=dir(VSDsounds);
-
-            % STEP2: DROP THE EMPTY ITEMS IN THE LIST
-            d=d(~ismember({d.name},{'.','..'}));
-
-            % STEP3: RANDOMIZE THE SOUNDS
-            num_sounds = length(d);
-            sound_options = 1:num_sounds;
-            FRnum_repeats = 1;
-            FRnum_trials = num_sounds * FRnum_repeats;
-            sound_order = nan(1, FRnum_trials);
-
-            for k = 1:num_sounds:FRnum_trials
-                subsequence = Shuffle(sound_options);
-                sound_order(k:k+(num_sounds-1)) = subsequence;
-                % swap the first value of this subsequence if it repeats the previous
-                if k > 1 && (sound_order(k) == sound_order(k-1))
-                    sound_order([k, k+1]) = sound_order([k+1, k]);
-                end
-            end
-
-            for a=1:length(sound_order)
+            for b=1:length(VSDrand_stim_order)
 
             % STEP4: CALL THE SOUND
             DrawFormattedText(windowPtr, VSDtrialinfo, 'center', 'center');
-            t_vsd_trialinfo(a) = Screen('Flip', windowPtr); 
-            VSDfilename= d(sound_order(a)).name;
-            [VSDsoundFile,VSDfreq] = psychwavread(VSDfilename);
+            tVSD(b) = Screen('Flip', windowPtr);
+            
+            VSDused = VSDstim_list(VSDrand_stim_order(b));
+            whichVSDstim= VSDstim_list(VSDrand_stim_order(b));
+            [y,freq] = psychwavread(whichVSDstim);
 
             % STEP5: LEARN ITS DURATION
-            stimDurVSD(a) = length(VSDsoundFile)./VSDfreq;
+            stimDurVSD(b) = length(y)./freq;
 
             % STEP6: GET VALUES NECESSARY TO ENTER INTO THE PSYCHPORT FUNCTIONS
-            wave = VSDsoundFile'; %be careful it is transposed
+            wave = y'; %be careful it is transposed
             nrchannels = size(wave,1);
 
             % STEP7: MAKE SURE IT HAS 2 CHANNELS
@@ -247,7 +212,7 @@ try
             end
 
             % STEP8: OPEN THE PSYCHPORT AUDIO
-            pahandle = PsychPortAudio('Open', [], [], 0, VSDfreq, nrchannels);
+            pahandle = PsychPortAudio('Open', [], [], 0, freq, nrchannels);
 
             % STEP9: FILL THE BUFFER
             PsychPortAudio('FillBuffer',pahandle,wave);
@@ -267,18 +232,19 @@ try
             while resp == 0 %while there is no logged response
                 [keyIsDown,secs,keyCode] = KbCheck; %continuously checks the state of the keyboard
                 if keyCode(spaceKey) % if space key is pressed
-                    RT(a) = secs - t1; %get the current time and subtract offset time to get the RT
-                    response(a) = 1; %record a repeating response
+                    RT(b) = secs - t1; %get the current time and subtract offset time to get the RT
+                    response(b) = 1; %record a repeating response
                     resp = 1; %exit loop
                 elseif keyCode(nKey) %  if right is pressed
-                    RT(a) = secs - t1; %get the current time and subtract offset time to get the RT
-                    response(a) = 0; %record a repeating response
+                    RT(b) = secs - t1; %get the current time and subtract offset time to get the RT
+                    response(b) = 0; %record a repeating response
                     resp=1; %exit loop
                 end
             end
 
             % STEP12: CLOSE THE AUDIO DEVICE
             PsychPortAudio('Close', pahandle);
+            VSDstim_list(strcmp(VSDstim_list, whichVSDstim)) = [];
             end
         end
     end
